@@ -9,14 +9,19 @@ import { useState } from 'react'
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
-
+  const [isLoading, setLoading] = useState<boolean>(false);
   const [markdownContent, setMarkdownContent] = useState<string>(`
   Hi! Once you've input your raw log event and parser code, click "Simulate Parsing"!
   
   Then, I'll show you the parsed UDM event, provide an explanation, and share some suggestions and tips.
   `);
 
+  const handleRequest = () => {
+    setLoading(true);
+  }
+
   const handleContentChange = (response: string) => {
+    setLoading(false);
     setMarkdownContent(response);
   };
 
@@ -30,7 +35,7 @@ export default function Home() {
       </Head>
       <main className="p-8">
         <div className="flex flex-col w-full">
-          <LogParser onParse={handleContentChange}></LogParser><br />
+          <LogParser onRequest={handleRequest} onParse={handleContentChange}></LogParser><br />
           <h2 className='text-3xl mb-4'>Output parsed UDM Event</h2>
           {markdownContent.trim() !== '' && <Markdown content={markdownContent} />}
         </div>
