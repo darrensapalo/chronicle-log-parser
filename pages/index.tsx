@@ -40,10 +40,23 @@ export default function Home() {
           
           {markdownContent.trim() !== '' && <Markdown content={markdownContent} />}
         </div>
+        <div className='flex flex-col'>
         <div className="flex flex-row">
-          <span className='text-xs italic my-4 text-slate-400'>
-            Made for <a className="link underline underline-offset-4" href="https://www.linkedin.com/in/carmela-sevilla/">Carmela Sevilla</a>. See <a className="link underline underline-offset-4" href="https://github.com/darrensapalo/chronicle-log-parser">GitHub source code</a>.
-          </span>
+            <span className='text-xs italic mt-4 text-slate-400'>
+              Made for <a className="link underline underline-offset-4" href="https://www.linkedin.com/in/carmela-sevilla/">Carmela Sevilla</a>. See <a className="link underline underline-offset-4" href="https://github.com/darrensapalo/chronicle-log-parser">GitHub source code</a>.
+            </span>
+          </div>
+          <div className="flex flex-row">
+            <span className='text-xs italic my-4 text-slate-400'>
+              Resources: 
+              <a className="link underline underline-offset-4 mx-2" href="https://cloud.google.com/chronicle/docs/preview/parser-extensions/parsing-overview">Chronicle Log Parsing</a>
+              <a className="link underline underline-offset-4 mx-2" href="https://www.elastic.co/guide/en/logstash/current/advanced-pipeline.html">Parsing with Logstash</a>
+              <a className="link underline underline-offset-4 mx-2" href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html">Grok filter plugin</a>
+              <a className="link underline underline-offset-4 mx-2" href="https://cloud.google.com/chronicle/docs/reference/udm-field-list">UDM field list</a>
+              
+              
+            </span>
+          </div>
         </div>
 
       </main>
