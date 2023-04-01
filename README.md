@@ -6,6 +6,12 @@ This webapp allows you to provide (1) a raw log, and (2) log parser code using [
 
 This was built using [Next.js](https://nextjs.org/).
 
+### Author's notes
+
+I'm not really a security expert, or a logstash expert, but I've been trying to find a way to test logstash parsing code for raw logs, for parsing into Google Chronicle UDMs.
+
+I don't work in this field but I spent somewhere around 2 hours to set this whole system up. I think the UDM parsing might still be incorrect (70% vibe that it's incorrect) but I think the prompt can be improved so that ChatGPT is taught about the UDM model.
+
 ### Limitations
 
 ⚠️ **This tool is powered by AI LLMs**, so do not use these as a source of truth. Use this tool as an **approximation/supporting tool** to improve your parser coding literacy. ⚠️ 
@@ -27,6 +33,11 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+
+## Bug reports
+
+I'm open to feedback, and I will improve this over time. Please submit GitHub issues if you find some issues.
 
 ## Contributing
 
