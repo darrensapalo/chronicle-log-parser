@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { marked } from 'marked';
 import React, { useState } from 'react';
 
 interface LogParserProps {
@@ -90,9 +89,14 @@ output {
           <input type="reset" hidden={isLoading} disabled={isLoading} className={isLoading ? buttonStyleLoading : buttonStyle} value="Reset" />
           
         </div>
-        <span className='text-xs italic mb-8'>
-            Powered by ChatGPT 3.5 (Turbo).
+        <div className="flex flex-col">
+        <span className='text-sm italic mb-2'>
+            Powered by ChatGPT 3.5 (Turbo). 
           </span>
+          <span className='text-xs italic mb-2'>
+          Disclaimer: This tool is powered by AI LLMs, so <strong>do not use these as a source of truth</strong>. Use this tool as an approximation/supporting tool to improve your parser coding literacy.
+          </span>
+        </div>
       </form>
     </div>
   );
