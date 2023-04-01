@@ -8,7 +8,7 @@ interface LogParserProps {
 }
 
 const LogParser: React.FC<LogParserProps> = ({ onParse, onRequest }) => {
-  onRequest
+  const [isLoading, setLoading] = useState<boolean>(false);
   const [rawLogEvent, setRawLogEvent] = useState(`_ 127.0.0.1 [24/Apr/2017:21:22:23 -0700] "GET / HTTP/1.1" 200 654 0.000 - "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0"`);
   const [parserCode, setParserCode] = useState(`input {
     file {
@@ -38,10 +38,12 @@ output {
     // Handle the form submission here
     try {
       onRequest();
-      const response = await axios.post('/api/openai-api', { rawLogEvent, parserCode });
-      const content = response.data.choices[0]?.message?.content;
-      console.log('API response:', content);
-      onParse(content);
+      setLoading(true);
+      // const response = await axios.post('/api/openai-api', { rawLogEvent, parserCode });
+      // const content = response.data.choices[0]?.message?.content;
+      // console.log('API response:', content);
+      // setLoading(false);
+      // onParse(content);
     } catch (error) {
       console.error('Error making request:', (error as any).message);
     }
@@ -52,6 +54,9 @@ output {
     setRawLogEvent('');
     setParserCode('');
   }
+
+  const buttonStyle = 'cursor-pointer p-2 mr-2 rounded-lg border-solid border-2 border-gray-700 bg-gray-950	w-40 ';
+  const buttonStyleLoading = 'cursor-pointer p-2 mr-2 rounded-lg border-solid border-1 border-gray-700 bg-gray-700 text-gray-400 w-40 ';
 
   return (
     <div>
@@ -81,12 +86,12 @@ output {
           />
         </div>
         <div className='my-4'>
-          <button type="submit" className='cursor-pointer p-2 mr-2 rounded-lg border-solid border-2 border-gray-700'>Simulate parsing</button>
-          <input type="reset" className='cursor-pointer p-2 mr-2 rounded-lg border-solid border-2 border-gray-700' value="Reset" />
+          <button type="submit" disabled={isLoading} className={isLoading ? buttonStyleLoading : buttonStyle}>{ isLoading ? "Loading..." : "Simulate parsing"}</button>
+          <input type="reset" hidden={isLoading} disabled={isLoading} className={isLoading ? buttonStyleLoading : buttonStyle} value="Reset" />
           
         </div>
         <span className='text-xs italic mb-8'>
-            Currently does not have a loading state; please click the button only once and wait patiently. <i>Have mercy on my API access token 😱 .</i>
+            Powered by ChatGPT 3.5 (Turbo).
           </span>
       </form>
     </div>
