@@ -11,15 +11,9 @@ const inter = Inter({ subsets: ['latin'] })
 export default function Home() {
 
   const [markdownContent, setMarkdownContent] = useState<string>(`
-  # Heading
+  Hi! Once you've input your raw log event and parser code, click "Simulate Parsing"!
   
-  This is a paragraph with **bold text** and *italic text*.
-  
-  - List item 1
-  - List item 2
-  - List item 3
-  
-  [Visit Google](https://www.google.com)
+  Then, I'll show you the parsed UDM event, provide an explanation, and share some suggestions and tips.
   `);
 
   const handleContentChange = (response: string) => {
