@@ -39,11 +39,11 @@ output {
     try {
       onRequest();
       setLoading(true);
-      // const response = await axios.post('/api/openai-api', { rawLogEvent, parserCode });
-      // const content = response.data.choices[0]?.message?.content;
-      // console.log('API response:', content);
-      // setLoading(false);
-      // onParse(content);
+      const response = await axios.post('/api/openai-api', { rawLogEvent, parserCode });
+      const content = response.data.choices[0]?.message?.content;
+      console.log('API response:', content);
+      setLoading(false);
+      onParse(content);
     } catch (error) {
       console.error('Error making request:', (error as any).message);
     }
