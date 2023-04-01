@@ -5,6 +5,7 @@ interface LogParserProps {
   onParse: (msg: string) => void;
   onRequest: () => void;
 }
+var gtag : any;
 
 const LogParser: React.FC<LogParserProps> = ({ onParse, onRequest }) => {
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -38,12 +39,16 @@ output {
     try {
       onRequest();
       setLoading(true);
+      gtag('event', 'parse', {});
       const response = await axios.post('/api/openai-api', { rawLogEvent, parserCode });
       const content = response.data.choices[0]?.message?.content;
       console.log('API response:', content);
       setLoading(false);
       onParse(content);
     } catch (error) {
+      gtag('event', 'error', {
+        message: (error as any).message || "Failed to perform API request"
+      });
       console.error('Error making request:', (error as any).message);
     }
   };
