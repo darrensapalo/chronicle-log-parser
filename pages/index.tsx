@@ -5,6 +5,7 @@ import styles from '@/styles/Home.module.css'
 import LogParser from './log_parser'
 import Markdown from './markdown'
 import { useState } from 'react'
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -58,7 +59,15 @@ export default function Home() {
             </span>
           </div>
         </div>
-
+        <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-5QJBTE12CN');
+        `}
+      </Script>
+      <Script src="https://www.googletagmanager.com/gtag/js?id=G-5QJBTE12CN" strategy='afterInteractive'></Script>
       </main>
     </>
   )
