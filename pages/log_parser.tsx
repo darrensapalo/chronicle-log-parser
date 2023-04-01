@@ -8,6 +8,7 @@ interface LogParserProps {
 }
 
 const LogParser: React.FC<LogParserProps> = ({ onParse, onRequest }) => {
+  onRequest
   const [rawLogEvent, setRawLogEvent] = useState(`_ 127.0.0.1 [24/Apr/2017:21:22:23 -0700] "GET / HTTP/1.1" 200 654 0.000 - "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0"`);
   const [parserCode, setParserCode] = useState(`input {
     file {
@@ -82,7 +83,11 @@ output {
         <div className='my-4'>
           <button type="submit" className='cursor-pointer p-2 mr-2 rounded-lg border-solid border-2 border-gray-700'>Simulate parsing</button>
           <input type="reset" className='cursor-pointer p-2 mr-2 rounded-lg border-solid border-2 border-gray-700' value="Reset" />
+          
         </div>
+        <span className='text-xs italic mb-8'>
+            Currently does not have a loading state; please click the button only once and wait patiently. <i>Have mercy on my API access token 😱 .</i>
+          </span>
       </form>
     </div>
   );

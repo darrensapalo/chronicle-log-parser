@@ -37,7 +37,13 @@ export default function Home() {
         <div className="flex flex-col w-full">
           <LogParser onRequest={handleRequest} onParse={handleContentChange}></LogParser><br />
           <h2 className='text-3xl mb-4'>Output parsed UDM Event</h2>
+          
           {markdownContent.trim() !== '' && <Markdown content={markdownContent} />}
+        </div>
+        <div className="flex flex-row">
+          <span className='text-xs italic my-4 text-slate-400'>
+            Made for <a className="link underline underline-offset-4" href="https://www.linkedin.com/in/carmela-sevilla/">Carmela Sevilla</a>. See <a className="link underline underline-offset-4" href="https://github.com/darrensapalo/chronicle-log-parser">GitHub source code</a>.
+          </span>
         </div>
 
       </main>
