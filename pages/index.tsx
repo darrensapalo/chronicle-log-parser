@@ -1,13 +1,8 @@
 import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
 import LogParser from './log_parser'
 import Markdown from './markdown'
 import { useState } from 'react'
 import Script from 'next/script';
-
-const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -34,6 +29,15 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <Script id="google-analytics">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-5QJBTE12CN');
+        `}
+      </Script>
+      <Script src="https://www.googletagmanager.com/gtag/js?id=G-5QJBTE12CN"></Script>
       <main className="p-8">
         <div className="flex flex-col w-full">
           <LogParser onRequest={handleRequest} onParse={handleContentChange}></LogParser><br />
@@ -59,15 +63,7 @@ export default function Home() {
             </span>
           </div>
         </div>
-        <Script id="google-analytics" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-5QJBTE12CN');
-        `}
-      </Script>
-      <Script src="https://www.googletagmanager.com/gtag/js?id=G-5QJBTE12CN" strategy='afterInteractive'></Script>
+        
       </main>
     </>
   )
