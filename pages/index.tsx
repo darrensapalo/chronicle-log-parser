@@ -48,7 +48,9 @@ export default function Home() {
         <div className='flex flex-col'>
         <div className="flex flex-row">
             <span className='text-xs italic mt-4 text-slate-400'>
-              Made for <a className="link underline underline-offset-4" href="https://www.linkedin.com/in/carmela-sevilla/">Carmela Sevilla</a>. See <a className="link underline underline-offset-4" href="https://github.com/darrensapalo/chronicle-log-parser">GitHub source code</a>.
+              Made for <a className="link underline underline-offset-4" href="https://www.linkedin.com/in/carmela-sevilla/">Carmela Sevilla</a>. 
+              See <a className="link underline underline-offset-4" href="https://github.com/darrensapalo/chronicle-log-parser">GitHub source code</a>. 
+              See <a className="link underline underline-offset-4" href="https://github.com/darrensapalo/chronicle-log-parser/blob/main/pages/api/openai-api.ts#L39">the GPT prompt</a>. 
             </span>
           </div>
           <div className="flex flex-row">
