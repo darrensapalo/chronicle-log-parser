@@ -32,6 +32,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 If you want to contribute examples, see `public/content/samples.json`. These can later be options that Chronicle log parsers can use on the parser simulator for study purposes.
 
+## Roadmap
+
+1. Improvements on the prompt engineering - if we could include Chronicle Documentation about
+the UDM schema definition, I think that will make sure the output of the AI tool will be updated.
+
 ## Licensing
 
 [Apache License 2.0](./LICENSE.md).
