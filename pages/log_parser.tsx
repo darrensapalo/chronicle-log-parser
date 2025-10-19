@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FileJson, Filter, FileText, Info, History } from 'lucide-react';
 import { useRouter } from 'next/router';
 
@@ -39,16 +39,9 @@ output {
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
   const [transformations, setTransformations] = useState<any[]>([]);
   const [currentTransformationId, setCurrentTransformationId] = useState<number | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
 
-  // Load transformation from query parameter
-  useEffect(() => {
-    const transformationId = router.query.transformationId as string;
-    if (transformationId) {
-      loadTransformation(parseInt(transformationId));
-    }
-  }, [router.query.transformationId]);
-
-  const loadTransformation = async (id: number) => {
+  const loadTransformation = useCallback(async (id: number) => {
     try {
       const response = await axios.get(`/api/transformations/${id}`);
       const transformation = response.data;
@@ -57,19 +50,34 @@ output {
       setParserCode(transformation.filterCode);
       setUdmEvent(JSON.parse(transformation.generatedOutput));
       setCurrentTransformationId(transformation.id);
-      onParse(`Loaded transformation #${id}`);
+      if (onParse) {
+        onParse(`Loaded transformation #${id}`);
+      }
     } catch (error) {
       console.error('Error loading transformation:', error);
-      onParse(`Failed to load transformation #${id}`);
+      if (onParse) {
+        onParse(`Failed to load transformation #${id}`);
+      }
     }
-  };
+  }, [onParse]);
+
+  // Load transformation from query parameter
+  useEffect(() => {
+    const transformationId = router.query.transformationId as string;
+    if (transformationId) {
+      loadTransformation(parseInt(transformationId));
+    }
+  }, [router.query.transformationId, loadTransformation]);
 
   const fetchTransformations = async () => {
     try {
+      setIsLoadingHistory(true);
       const response = await axios.get('/api/transformations?limit=50');
       setTransformations(response.data.data);
     } catch (error) {
       console.error('Error fetching transformations:', error);
+    } finally {
+      setIsLoadingHistory(false);
     }
   };
 
@@ -258,7 +266,12 @@ output {
               </button>
             </div>
             <div className="space-y-3">
-              {transformations.length === 0 ? (
+              {isLoadingHistory ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  <p className="text-gray-500 mt-2">Loading transformations...</p>
+                </div>
+              ) : transformations.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">No transformations found</p>
               ) : (
                 transformations.map((t) => (
