@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model LogTransformation {
+  id               Int      @id @default(autoincrement())
+  apiVersion       Int      @map("api_version")
+  author           String?
+  rawLog           String   @map("raw_log")
+  filterCode       String   @map("filter_code")
+  generatedOutput  String   @map("generated_output")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  reports          TransformationReport[]
+
+  @@map("log_transformations")
+}
+
+model TransformationReport {
+  id                 Int      @id @default(autoincrement())
+  transformationId   Int      @map("transformation_id")
+  remarks            String
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  transformation     LogTransformation @relation(fields: [transformationId], references: [id])
+
+  @@index([transformationId])
+  @@map("transformation_reports")
+}
