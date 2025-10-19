@@ -87,7 +87,9 @@ output {
     try {
       onRequest();
       setLoading(true);
-      (window as any).gtag('event', 'parse', {});
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'parse', {});
+      }
       const response = await axios.post('/api/parse-log', { rawLogEvent, parserCode });
 
       if (response.data.success) {
@@ -97,22 +99,30 @@ output {
         setParsedFields(response.data.parsed);
         setCurrentTransformationId(response.data.transformationId);
         setLoading(false);
-        onParse(explanation);
+        if (onParse) {
+          onParse(explanation);
+        }
       } else {
         setLoading(false);
         setUdmEvent(null);
         setParsedFields(null);
-        onParse(response.data.explanation || 'Failed to parse log');
+        if (onParse) {
+          onParse(response.data.explanation || 'Failed to parse log');
+        }
       }
     } catch (error: any) {
-      (window as any).gtag('event', 'error', {
-        message: error.message || "Failed to perform API request"
-      });
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'error', {
+          message: error.message || "Failed to perform API request"
+        });
+      }
       console.error('Error making request:', error.message);
       setLoading(false);
       setUdmEvent(null);
       setParsedFields(null);
-      onParse(error.response?.data?.explanation || `## Error\n\nAn error occurred: ${error.message}`);
+      if (onParse) {
+        onParse(error.response?.data?.explanation || `## Error\n\nAn error occurred: ${error.message}`);
+      }
     }
   };
 
