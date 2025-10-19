@@ -1,12 +1,14 @@
 import axios from 'axios';
-import React, { useState } from 'react';
-import { FileJson, Filter, FileText, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileJson, Filter, FileText, Info, History } from 'lucide-react';
+import { useRouter } from 'next/router';
 
 interface LogParserProps {
   onParse: (msg: string) => void;
   onRequest: () => void;
 }
 const LogParser: React.FC<LogParserProps> = ({ onParse, onRequest }) => {
+  const router = useRouter();
   const [isLoading, setLoading] = useState<boolean>(false);
   const [rawLogEvent, setRawLogEvent] = useState(`_ 127.0.0.1 [24/Apr/2017:21:22:23 -0700] "GET / HTTP/1.1" 200 654 0.000 - "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0"`);
   const [parserCode, setParserCode] = useState(`input {
@@ -34,6 +36,42 @@ output {
   const [udmEvent, setUdmEvent] = useState<any>(null);
   const [parsedFields, setParsedFields] = useState<any>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
+  const [transformations, setTransformations] = useState<any[]>([]);
+  const [currentTransformationId, setCurrentTransformationId] = useState<number | null>(null);
+
+  // Load transformation from query parameter
+  useEffect(() => {
+    const transformationId = router.query.transformationId as string;
+    if (transformationId) {
+      loadTransformation(parseInt(transformationId));
+    }
+  }, [router.query.transformationId]);
+
+  const loadTransformation = async (id: number) => {
+    try {
+      const response = await axios.get(`/api/transformations/${id}`);
+      const transformation = response.data;
+
+      setRawLogEvent(transformation.rawLog);
+      setParserCode(transformation.filterCode);
+      setUdmEvent(JSON.parse(transformation.generatedOutput));
+      setCurrentTransformationId(transformation.id);
+      onParse(`Loaded transformation #${id}`);
+    } catch (error) {
+      console.error('Error loading transformation:', error);
+      onParse(`Failed to load transformation #${id}`);
+    }
+  };
+
+  const fetchTransformations = async () => {
+    try {
+      const response = await axios.get('/api/transformations?limit=50');
+      setTransformations(response.data.data);
+    } catch (error) {
+      console.error('Error fetching transformations:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +87,7 @@ output {
         console.log('API response:', response.data);
         setUdmEvent(response.data.udm);
         setParsedFields(response.data.parsed);
+        setCurrentTransformationId(response.data.transformationId);
         setLoading(false);
         onParse(explanation);
       } else {
@@ -138,13 +177,27 @@ output {
         </div>
 
         <div className='flex items-center justify-between'>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-md transition-colors duration-200"
-          >
-            { isLoading ? "Parsing..." : "Parse"}
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-md transition-colors duration-200"
+            >
+              { isLoading ? "Parsing..." : "Parse"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                fetchTransformations();
+                setShowHistoryModal(true);
+              }}
+              className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-md transition-colors duration-200"
+            >
+              <History className="w-4 h-4" />
+              History
+            </button>
+          </div>
 
           <div className="flex flex-col text-right">
             <span className='text-sm text-gray-600 mb-1'>
@@ -179,6 +232,70 @@ output {
             </div>
             <div className="font-mono text-xs text-gray-900 bg-gray-50 border border-gray-300 rounded-md p-4">
               <pre className="whitespace-pre-wrap">{JSON.stringify(parsedFields, null, 2)}</pre>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Overlay for Transformation History */}
+      {showHistoryModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowHistoryModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl p-6 max-w-4xl w-full max-h-[80vh] overflow-auto m-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-900">Transformation History</h2>
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                title="Close"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="space-y-3">
+              {transformations.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No transformations found</p>
+              ) : (
+                transformations.map((t) => (
+                  <div
+                    key={t.id}
+                    className={`border rounded-md p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                      currentTransformationId === t.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                    }`}
+                    onClick={() => {
+                      router.push(`/log_parser?transformationId=${t.id}`);
+                      setShowHistoryModal(false);
+                    }}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">
+                          Transformation #{t.id}
+                          {currentTransformationId === t.id && (
+                            <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-1 rounded">Current</span>
+                          )}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          {new Date(t.createdAt).toLocaleString()} • v{t.apiVersion}
+                        </p>
+                      </div>
+                      {t.reports && t.reports.length > 0 && (
+                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                          {t.reports.length} report{t.reports.length > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-600 font-mono truncate">
+                      {t.rawLog.substring(0, 100)}...
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

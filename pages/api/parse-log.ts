@@ -3,6 +3,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { LogstashParser } from '../../lib/logstash-parser';
 import { UDMMapper } from '../../lib/udm-mapper';
+import { prisma } from '../../lib/prisma';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
@@ -39,11 +40,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // Generate explanation
     const explanation = udmMapper.generateExplanation(parsedData, udmEvent);
 
+    // Save to database
+    const transformation = await prisma.logTransformation.create({
+      data: {
+        apiVersion: 1,
+        author: null,
+        rawLog: rawLogEvent,
+        filterCode: parserCode,
+        generatedOutput: JSON.stringify(udmEvent, null, 2),
+      },
+    });
+
     res.status(200).json({
       success: true,
       parsed: parsedData,
       udm: udmEvent,
-      explanation
+      explanation,
+      transformationId: transformation.id,
     });
 
   } catch (error) {
