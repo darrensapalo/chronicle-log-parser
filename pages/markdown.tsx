@@ -7,7 +7,11 @@ interface MarkdownProps {
 }
 
 const Markdown: React.FC<MarkdownProps> = ({ content }) => {
-  return <ReactMarkdown>{content}</ReactMarkdown>;
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 prose prose-slate max-w-none">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  );
 };
 
 export default Markdown;

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
+import { FileJson, Filter, FileText, Info } from 'lucide-react';
 
 interface LogParserProps {
   onParse: (msg: string) => void;
@@ -16,7 +17,7 @@ const LogParser: React.FC<LogParserProps> = ({ onParse, onRequest }) => {
 filter {
   grok {
     match => {
-      "message" => "%{IPORHOST:client_ip} \[%{HTTPDATE:timestamp}\] \"%{WORD:http_method} %{DATA:request} HTTP/%{NUMBER:http_version}\" %{NUMBER:response_code} %{NUMBER:response_size} %{NUMBER:response_time} %{QS:user_agent}"
+      "message" => "%{NOTSPACE:ident} %{IP:client_ip} \\[%{HTTPDATE:timestamp}\\] %{QS:http_request} %{NUMBER:response_code} %{NUMBER:bytes} %{NUMBER:response_time} %{NOTSPACE:dash} %{QS:referrer} %{QS:user_agent}"
     }
   }
   date {
@@ -30,6 +31,9 @@ filter {
 output {
     stdout { codec => rubydebug }
 }`);
+  const [udmEvent, setUdmEvent] = useState<any>(null);
+  const [parsedFields, setParsedFields] = useState<any>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,69 +42,147 @@ output {
       onRequest();
       setLoading(true);
       (window as any).gtag('event', 'parse', {});
-      const response = await axios.post('/api/openai-api', { rawLogEvent, parserCode });
-      const content = response.data.choices[0]?.message?.content;
-      console.log('API response:', content);
-      setLoading(false);
-      onParse(content);
-    } catch (error) {
+      const response = await axios.post('/api/parse-log', { rawLogEvent, parserCode });
+
+      if (response.data.success) {
+        const explanation = response.data.explanation;
+        console.log('API response:', response.data);
+        setUdmEvent(response.data.udm);
+        setParsedFields(response.data.parsed);
+        setLoading(false);
+        onParse(explanation);
+      } else {
+        setLoading(false);
+        setUdmEvent(null);
+        setParsedFields(null);
+        onParse(response.data.explanation || 'Failed to parse log');
+      }
+    } catch (error: any) {
       (window as any).gtag('event', 'error', {
-        message: (error as any).message || "Failed to perform API request"
+        message: error.message || "Failed to perform API request"
       });
-      console.error('Error making request:', (error as any).message);
+      console.error('Error making request:', error.message);
+      setLoading(false);
+      setUdmEvent(null);
+      setParsedFields(null);
+      onParse(error.response?.data?.explanation || `## Error\n\nAn error occurred: ${error.message}`);
     }
   };
 
-  const handleReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setRawLogEvent('');
-    setParserCode('');
-  }
-
-  const buttonStyle = 'cursor-pointer p-2 mr-2 rounded-lg border-solid border-2 border-gray-700 bg-gray-950	w-40 ';
-  const buttonStyleLoading = 'cursor-pointer p-2 mr-2 rounded-lg border-solid border-1 border-gray-700 bg-gray-700 text-gray-400 w-40 ';
-
   return (
-    <div>
-      <h1 className="text-3xl">Chronicle Log Parser</h1>
-      <form onSubmit={handleSubmit} onReset={handleReset}>
+    <div className="bg-white rounded-lg shadow-md p-6 mb-6 md:h-[80vh] flex flex-col">
+      <h1 className="text-3xl text-gray-900 mb-6">Chronicle Log Parser</h1>
+      <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 flex-1 min-h-0">
+          {/* Section 1: Input JSON */}
+          <div className="flex flex-col min-h-0">
+            <label className='flex items-center gap-2 mb-2 text-gray-700 font-medium' htmlFor="raw-log-event">
+              <FileJson className="w-5 h-5" />
+              Raw Log Event
+            </label>
+            <textarea
+              id="raw-log-event"
+              className='flex-1 text-gray-900 w-full font-mono text-xs border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 resize-none overflow-auto'
+              style={{ margin: '2px' }}
+              value={rawLogEvent}
+              onChange={(e) => setRawLogEvent(e.target.value)}
+              placeholder="Paste your raw log event here..."
+            />
+          </div>
 
-        <div>
-          <label className='flex my-2' htmlFor="raw-log-event">Raw log event:</label>
-          <textarea
-            id="raw-log-event"
-            className='text-black w-full font-mono text-xs'
-            value={rawLogEvent}
-            onChange={(e) => setRawLogEvent(e.target.value)}
-            rows={parseInt("10")}
-            cols={parseInt("50")}
-          />
+          {/* Section 2: Filter / Logstash Parsing Code */}
+          <div className="flex flex-col min-h-0">
+            <label className='flex items-center gap-2 mb-2 text-gray-700 font-medium' htmlFor="parser-code">
+              <Filter className="w-5 h-5" />
+              Logstash Parser Code
+            </label>
+            <textarea
+              className='flex-1 text-gray-900 w-full font-mono text-xs border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 resize-none overflow-auto'
+              style={{ margin: '2px' }}
+              id="parser-code"
+              value={parserCode}
+              onChange={(e) => setParserCode(e.target.value)}
+              placeholder="Enter your Logstash parser configuration..."
+            />
+          </div>
+
+          {/* Section 3: UDM Event Structure Preview */}
+          <div className="flex flex-col min-h-0">
+            <div className='flex items-center justify-between mb-2'>
+              <label className='flex items-center gap-2 text-gray-700 font-medium'>
+                <FileText className="w-5 h-5" />
+                Preview
+              </label>
+              {parsedFields && (
+                <button
+                  type="button"
+                  onClick={() => setShowModal(true)}
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  title="View parsed fields"
+                >
+                  <Info className="w-4 h-4" />
+                  Parsed Fields
+                </button>
+              )}
+            </div>
+            <div className='flex-1 w-full font-mono text-xs border border-gray-300 rounded-md p-3 bg-gray-50 text-gray-900 overflow-auto min-h-0' style={{ margin: '2px' }}>
+              {isLoading ? (
+                <span className="text-gray-500">Parsing...</span>
+              ) : udmEvent ? (
+                <pre className="whitespace-pre-wrap">{JSON.stringify(udmEvent, null, 2)}</pre>
+              ) : (
+                <span className="text-gray-500">Click "Parse" to see the result</span>
+              )}
+            </div>
+          </div>
         </div>
-        <div>
-          <label className='flex my-2' htmlFor="parser-code">Parser code:</label>
-          <textarea
-            className='text-black w-full font-mono text-xs'
-            id="parser-code"
-            value={parserCode}
-            onChange={(e) => setParserCode(e.target.value)}
-            rows={parseInt("15")}
-            cols={parseInt("50")}
-          />
-        </div>
-        <div className='my-4'>
-          <button type="submit" disabled={isLoading} className={isLoading ? buttonStyleLoading : buttonStyle}>{ isLoading ? "Loading..." : "Simulate parsing"}</button>
-          <input type="reset" hidden={isLoading} disabled={isLoading} className={isLoading ? buttonStyleLoading : buttonStyle} value="Reset" />
-          
-        </div>
-        <div className="flex flex-col">
-        <span className='text-sm italic mb-2'>
-            Powered by ChatGPT 3.5 (Turbo). 
-          </span>
-          <span className='text-xs italic mb-2'>
-          Disclaimer: This tool is powered by AI LLMs, so <strong>do not use these as a source of truth</strong>. Use this tool as an approximation/supporting tool to improve your parser coding literacy.
-          </span>
+
+        <div className='flex items-center justify-between'>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-md transition-colors duration-200"
+          >
+            { isLoading ? "Parsing..." : "Parse"}
+          </button>
+
+          <div className="flex flex-col text-right">
+            <span className='text-sm text-gray-600 mb-1'>
+              Powered by pure JavaScript Logstash parser with UDM mapping
+            </span>
+            <span className='text-xs text-gray-500'>
+              Deterministic results based on your parser configuration
+            </span>
+          </div>
         </div>
       </form>
+
+      {/* Modal Overlay for Parsed Fields */}
+      {showModal && parsedFields && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-auto m-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-900">Parsed Fields</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                title="Close"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="font-mono text-xs text-gray-900 bg-gray-50 border border-gray-300 rounded-md p-4">
+              <pre className="whitespace-pre-wrap">{JSON.stringify(parsedFields, null, 2)}</pre>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
