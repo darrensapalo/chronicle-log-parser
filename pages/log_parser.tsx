@@ -131,7 +131,7 @@ output {
               ) : udmEvent ? (
                 <pre className="whitespace-pre-wrap">{JSON.stringify(udmEvent, null, 2)}</pre>
               ) : (
-                <span className="text-gray-500">Click "Parse" to see the result</span>
+                <span className="text-gray-500">Click &quot;Parse&quot; to see the result</span>
               )}
             </div>
           </div>
