@@ -2,23 +2,39 @@
 
 ## Chronicle Log Parser
 
-This webapp allows you to provide (1) a raw log, and (2) log parser code using [Logstash format](https://www.elastic.co/guide/en/logstash/current/advanced-pipeline.html).
+This webapp allows you to provide (1) a raw log, and (2) log parser code using [Logstash format](https://www.elastic.co/guide/en/logstash/current/advanced-pipeline.html), and it will parse the log and map it to the [Google Chronicle Unified Data Model (UDM)](https://cloud.google.com/chronicle/docs/reference/udm-field-list).
 
-This was built using [Next.js](https://nextjs.org/).
+This was built using [Next.js](https://nextjs.org/) 15 and React 18.
+
+### Features
+
+✨ **Pure JavaScript Logstash Parser** - No AI dependencies, deterministic parsing using actual grok pattern matching
+- Supports common grok patterns (IP, hostname, HTTP date, etc.)
+- Parses Logstash filter configurations including grok, date, and mutate filters
+- Named capture groups for field extraction
+
+🎯 **UDM Mapping** - Automatically maps parsed log fields to Google Chronicle UDM format
+- Maps to principal (source), target (destination), and network fields
+- Infers event types based on parsed data
+- Generates security results based on HTTP status codes
+- Provides detailed mapping explanations
+
+📊 **Interactive UI** - Test your Logstash parsers in real-time
+- Pre-filled example log and parser configuration
+- Immediate feedback on parsing results
+- Formatted JSON output with syntax highlighting
+
+### How It Works
+
+1. **Grok Pattern Parsing**: The tool converts Logstash grok patterns to JavaScript regular expressions with named capture groups
+2. **Field Extraction**: Applies the regex to your raw log to extract fields
+3. **Filter Application**: Applies date parsing and field mutations as defined in your Logstash config
+4. **UDM Mapping**: Maps extracted fields to the appropriate UDM schema fields
+5. **Explanation Generation**: Provides detailed breakdown of the parsing and mapping process
 
 ### Author's notes
 
-I'm not really a security expert, or a logstash expert, but I've been trying to find a way to test logstash parsing code for raw logs, for parsing into Google Chronicle UDMs.
-
-I don't work in this field but I spent somewhere around 2 hours to set this whole system up. I think the UDM parsing might still be incorrect (70% vibe that it's incorrect) but I think the prompt can be improved so that ChatGPT is taught about the UDM model.
-
-### Limitations
-
-⚠️ **This tool is powered by AI LLMs**, so do not use these as a source of truth. Use this tool as an **approximation/supporting tool** to improve your parser coding literacy. ⚠️ 
-
-As this is powered by OpenAI's ChatGPT 3.5 (Turbo), this is not as powerful as ChatGPT 4's reasoning engine.
-
-Given that, take it easy on the tool and ask it simple raw logs and parser code. Use it as a way to learn the Logstash format.
+This tool now uses a custom pure-JavaScript implementation of Logstash parsing instead of relying on AI. The parsing is deterministic and based on the actual grok patterns you provide. The UDM mapping follows Google Chronicle's official schema documentation.
 
 ### Development
 
@@ -43,10 +59,22 @@ I'm open to feedback, and I will improve this over time. Please submit GitHub is
 
 If you want to contribute examples, see `public/content/samples.json`. These can later be options that Chronicle log parsers can use on the parser simulator for study purposes.
 
+## Architecture
+
+The application consists of three main components:
+
+1. **LogstashParser** (`lib/logstash-parser.ts`): Parses Logstash grok patterns and applies filters
+2. **UDMMapper** (`lib/udm-mapper.ts`): Maps parsed fields to Google Chronicle UDM schema
+3. **API Endpoint** (`pages/api/parse-log.ts`): Orchestrates parsing and mapping
+
 ## Roadmap
 
-1. Improvements on the prompt engineering - if we could include Chronicle Documentation about
-the UDM schema definition, I think that will make sure the output of the AI tool will be updated.
+1. ✅ Replace AI-based parsing with actual Logstash implementation
+2. ✅ Implement UDM mapping based on official Chronicle documentation
+3. 🔄 Add support for more grok patterns
+4. 🔄 Support additional Logstash filters (json, csv, etc.)
+5. 🔄 Add validation for UDM schema compliance
+6. 🔄 Support custom grok pattern definitions
 
 ## Licensing
 
