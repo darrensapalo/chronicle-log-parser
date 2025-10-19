@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import LogParser from './log_parser'
 import Markdown from './markdown'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import Script from 'next/script';
 
 export default function Home() {
@@ -16,14 +16,14 @@ export default function Home() {
   4. Offer suggestions for improvement
   `);
 
-  const handleRequest = () => {
+  const handleRequest = useCallback(() => {
     setLoading(true);
-  }
+  }, []);
 
-  const handleContentChange = (response: string) => {
+  const handleContentChange = useCallback((response: string) => {
     setLoading(false);
     setMarkdownContent(response);
-  };
+  }, []);
 
   return (
     <>
